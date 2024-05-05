@@ -7,25 +7,14 @@ public fun InputMasks.build(builder: InputMaskBuilder.() -> Unit): InputMask {
 }
 
 public interface InputMaskBuilder {
-
     public val slots: List<InputSlot>
-
     public fun fixedChar(char: Char, extracted: Boolean)
-
     public fun singleDigit(required: Boolean)
-
     public fun singleLetter(required: Boolean)
-
     public fun singleDigitOrLetter(required: Boolean)
-
     public fun digits()
-
     public fun letters()
-
     public fun digitsOrLetters()
-
-    public operator fun plusAssign(slot: InputSlot)
-
 }
 
 internal open class DefaultInputMaskBuilder : InputMaskBuilder {
@@ -45,14 +34,14 @@ internal open class DefaultInputMaskBuilder : InputMaskBuilder {
 
     override fun fixedChar(char: Char, extracted: Boolean) {
         when {
-            hasInfiniteSymbols -> throw InvalidMaskError.SymbolAfterInfiniteSlot("fixed char")
+            hasInfiniteSymbols -> throw InvalidMaskError.SlotAfterInfiniteSlot("fixed char")
             else -> this += InputSlot.FixedChar(char, extracted)
         }
     }
 
     override fun singleDigit(required: Boolean) {
         when {
-            hasInfiniteSymbols -> throw InvalidMaskError.SymbolAfterInfiniteSlot("digit")
+            hasInfiniteSymbols -> throw InvalidMaskError.SlotAfterInfiniteSlot("digit")
             required && lastIsOptionalDigit -> throw InvalidMaskError.RequiredSlotAfterOptionalSlot("digit")
             else -> this += if (required) InputSlot.RequiredDigit else InputSlot.OptionalDigit
         }
@@ -60,7 +49,7 @@ internal open class DefaultInputMaskBuilder : InputMaskBuilder {
 
     override fun singleLetter(required: Boolean) {
         when {
-            hasInfiniteSymbols -> throw InvalidMaskError.SymbolAfterInfiniteSlot("letter")
+            hasInfiniteSymbols -> throw InvalidMaskError.SlotAfterInfiniteSlot("letter")
             required && lastIsOptionalLetter -> throw InvalidMaskError.RequiredSlotAfterOptionalSlot("letter")
             else -> this += if (required) InputSlot.RequiredLetter else InputSlot.OptionalLetter
         }
@@ -68,7 +57,7 @@ internal open class DefaultInputMaskBuilder : InputMaskBuilder {
 
     override fun singleDigitOrLetter(required: Boolean) {
         when {
-            hasInfiniteSymbols -> throw InvalidMaskError.SymbolAfterInfiniteSlot("digit or letter")
+            hasInfiniteSymbols -> throw InvalidMaskError.SlotAfterInfiniteSlot("digit or letter")
             required && lastIsOptionalSymbol -> throw InvalidMaskError.RequiredSlotAfterOptionalSlot("digit or letter")
             else -> this += if (required) InputSlot.RequiredLetterOrDigit else InputSlot.OptionalLetterOrDigit
         }
@@ -91,18 +80,18 @@ internal open class DefaultInputMaskBuilder : InputMaskBuilder {
     override fun digitsOrLetters() {
         when {
             hasInfiniteSymbols -> throw InvalidMaskError.DuplicateInfiniteSlot("digits or letters")
-            else -> replaceLast(predicate = { it.isOptional }, newSlot = InputSlot.Letters)
+            else -> replaceLast(predicate = { it is InputSlot.OptionalLetterOrDigit }, newSlot = InputSlot.Letters)
         }
+    }
+
+    internal open operator fun plusAssign(slot: InputSlot) {
+        slots += slot
+        if (slot.isInfinite) hasInfiniteSymbols = true
     }
 
     private fun replaceLast(predicate: (InputSlot) -> Boolean, newSlot: InputSlot) {
         while (slots.lastOrNull()?.let(predicate) == true) slots.removeLast()
         this += newSlot
-    }
-
-    override operator fun plusAssign(slot: InputSlot) {
-        slots += slot
-        if (slot.isInfinite) hasInfiniteSymbols = true
     }
 
 }

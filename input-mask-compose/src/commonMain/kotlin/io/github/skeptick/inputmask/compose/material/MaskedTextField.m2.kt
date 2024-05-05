@@ -31,7 +31,7 @@ public fun MaskedTextField(
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
     isError: Boolean = false,
-    keyboardOptions: KeyboardOptions? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     singleLine: Boolean = false,
     maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
@@ -43,7 +43,7 @@ public fun MaskedTextField(
     val visualTransformation = remember(mask) { InputMaskVisualTransformation(mask) }
 
     TextField(
-        value = value,
+        value = remember(value, mask) { visualTransformation.clear(value) },
         onValueChange = { visualTransformation.clear(it).let(onValueChange) },
         modifier = modifier,
         enabled = enabled,
@@ -55,9 +55,7 @@ public fun MaskedTextField(
         trailingIcon = trailingIcon,
         isError = isError,
         visualTransformation = visualTransformation,
-        keyboardOptions = keyboardOptions ?: remember(mask) {
-            KeyboardOptions(keyboardType = visualTransformation.keyboardType)
-        },
+        keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         maxLines = maxLines,
         minLines = minLines,
@@ -81,7 +79,7 @@ public fun MaskedOutlinedTextField(
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
     isError: Boolean = false,
-    keyboardOptions: KeyboardOptions? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     singleLine: Boolean = false,
     maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
@@ -93,7 +91,7 @@ public fun MaskedOutlinedTextField(
     val visualTransformation = remember(mask) { InputMaskVisualTransformation(mask) }
 
     OutlinedTextField(
-        value = value,
+        value = remember(value, mask) { visualTransformation.clear(value) },
         onValueChange = { visualTransformation.clear(it).let(onValueChange) },
         modifier = modifier,
         enabled = enabled,
@@ -105,9 +103,7 @@ public fun MaskedOutlinedTextField(
         trailingIcon = trailingIcon,
         isError = isError,
         visualTransformation = visualTransformation,
-        keyboardOptions = keyboardOptions ?: remember(mask) {
-            KeyboardOptions(keyboardType = visualTransformation.keyboardType)
-        },
+        keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         maxLines = maxLines,
         minLines = minLines,

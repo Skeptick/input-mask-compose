@@ -9,47 +9,7 @@ import io.github.skeptick.inputmask.core.InputMasks
 import io.github.skeptick.inputmask.core.InputSlot
 import io.github.skeptick.inputmask.core.InvalidMaskError
 
-internal fun InputMasks.buildInternal(builder: StatefulInputMaskBuilder.() -> Unit): InputMask {
-    return InputMask(InternalInputMaskBuilder().apply(builder).slots)
-}
-
-internal interface StatefulInputMaskBuilder : InputMaskBuilder {
-
-    val currentInput: List<InputSlot>
-
-    var isInput: Boolean
-
-    var isExtraction: Boolean
-
-    var isEscaped: Boolean
-
-}
-
-internal class InternalInputMaskBuilder : DefaultInputMaskBuilder(), StatefulInputMaskBuilder {
-
-    override val currentInput: MutableList<InputSlot> = mutableListOf()
-
-    override var isInput: Boolean = false
-        set(value) {
-            field = value
-            currentInput.clear()
-        }
-
-    override var isExtraction: Boolean = false
-
-    override var isEscaped: Boolean = false
-
-    override operator fun plusAssign(slot: InputSlot) {
-        super.plusAssign(slot)
-        when (slot) {
-            is InputSlot.FixedChar -> isEscaped = false
-            else -> currentInput += slot
-        }
-    }
-
-}
-
-internal fun buildInputMask(mask: String) = InputMasks.buildInternal {
+internal fun parseInputMask(mask: String) = InputMasks.buildInternal {
     for (char in mask) when (char) {
         Tokens.ESCAPE -> when {
             isInput -> throw InvalidMaskError.UnexpectedCharInInput(char)
@@ -117,6 +77,41 @@ internal fun buildInputMask(mask: String) = InputMasks.buildInternal {
             else -> fixedChar(char, extracted = isExtraction)
         }
     }
+}
+
+internal fun InputMasks.buildInternal(builder: StatefulInputMaskBuilder.() -> Unit): InputMask {
+    return InputMask(InternalInputMaskBuilder().apply(builder).slots)
+}
+
+internal interface StatefulInputMaskBuilder : InputMaskBuilder {
+    val currentInput: List<InputSlot>
+    var isInput: Boolean
+    var isExtraction: Boolean
+    var isEscaped: Boolean
+}
+
+internal class InternalInputMaskBuilder : DefaultInputMaskBuilder(), StatefulInputMaskBuilder {
+
+    override val currentInput: MutableList<InputSlot> = mutableListOf()
+
+    override var isInput: Boolean = false
+        set(value) {
+            field = value
+            currentInput.clear()
+        }
+
+    override var isExtraction: Boolean = false
+
+    override var isEscaped: Boolean = false
+
+    override operator fun plusAssign(slot: InputSlot) {
+        super.plusAssign(slot)
+        when (slot) {
+            is InputSlot.FixedChar -> isEscaped = false
+            else -> currentInput += slot
+        }
+    }
+
 }
 
 private object Tokens {

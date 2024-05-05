@@ -22,7 +22,7 @@ public sealed class InvalidMaskError(override val message: String) : Exception()
         "Invalid mask. Infinite $slotType after infinite symbols is pointless."
     )
 
-    public class SymbolAfterInfiniteSlot(symbolType: String) : InvalidMaskError(
+    public class SlotAfterInfiniteSlot(symbolType: String) : InvalidMaskError(
         "Invalid mask. ${symbolType.replaceFirstChar { it.uppercase() }} after infinite symbols is pointless."
     )
 

@@ -1,60 +1,73 @@
 package io.github.skeptick.inputmask.compose
 
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import io.github.skeptick.inputmask.core.FormatResult
+import io.github.skeptick.inputmask.core.InputChange
 import io.github.skeptick.inputmask.core.InputMask
 import io.github.skeptick.inputmask.core.InputMasks
-import io.github.skeptick.inputmask.core.InputSlot
-import io.github.skeptick.inputmask.core.clear
 import io.github.skeptick.inputmask.core.format
-import io.github.skeptick.inputmask.core.isDigit
-import io.github.skeptick.inputmask.core.isInfinite
 
-public class InputMaskVisualTransformation(mask: String) : VisualTransformation {
+public open class InputMaskVisualTransformation(mask: String) : VisualTransformation {
 
     public val inputMask: InputMask = InputMasks.getOrCreate(mask)
 
-    public val keyboardType: KeyboardType = when {
-        inputMask.slots.all { it.isDigit || it is InputSlot.FixedChar } -> KeyboardType.Number
-        else -> KeyboardType.Text
-    }
+    protected var lastFormatResult: FormatResult = inputMask.format("")
 
-    public fun clear(text: String): String {
-        return inputMask.clear(text)
+    protected var lastTransformedText: TransformedText = TransformedText(
+        text = AnnotatedString(lastFormatResult.formattedValue),
+        offsetMapping = InputMaskOffsetMapping(lastFormatResult)
+    )
+
+    public open fun clear(text: String): String {
+        if (lastFormatResult.sourceValue == text) {
+            return lastFormatResult.clearedValue
+        }
+        lastFormatResult = inputMask.format(text, replacePrefix = false)
+        lastTransformedText = TransformedText(
+            text = AnnotatedString(lastFormatResult.formattedValue),
+            offsetMapping = InputMaskOffsetMapping(lastFormatResult)
+        )
+        return lastFormatResult.clearedValue
     }
 
     override fun filter(text: AnnotatedString): TransformedText {
-        return TransformedText(
-            text = AnnotatedString(inputMask.format(text.toString()).value),
-            offsetMapping = offsetMapping
+        if (text.text == lastFormatResult.clearedValue) {
+            return lastTransformedText
+        }
+        lastFormatResult = inputMask.format(text.text, replacePrefix = false)
+        lastTransformedText = TransformedText(
+            text = AnnotatedString(lastFormatResult.formattedValue),
+            offsetMapping = InputMaskOffsetMapping(lastFormatResult)
         )
+        return lastTransformedText
     }
 
-    private val offsetMapping = object : OffsetMapping {
+    private class InputMaskOffsetMapping(val formatResult: FormatResult) : OffsetMapping {
 
         override fun originalToTransformed(offset: Int): Int {
-            var fixedChars = 0
+            var addedChars = 0
             var remainingOffset = offset
-            for (slot in inputMask.slots) when {
-                slot is InputSlot.FixedChar -> fixedChars++
+            for (change in formatResult.inputChanges) when {
+                remainingOffset < 0 -> break
+                change is InputChange.Insert -> addedChars += 1
                 remainingOffset == 0 -> break
-                else -> remainingOffset -= if (slot.isInfinite) remainingOffset else 1
+                change is InputChange.Take -> remainingOffset -= change.chars
             }
-            return offset + fixedChars
+            return offset + addedChars
         }
 
         override fun transformedToOriginal(offset: Int): Int {
-            var fixedChars = 0
+            var addedChars = 0
             var remainingOffset = offset
-            for (slot in inputMask.slots) when {
-                remainingOffset - fixedChars == 0 -> break
-                slot is InputSlot.FixedChar -> fixedChars++
-                else -> remainingOffset -= if (slot.isInfinite) remainingOffset else 1
+            for (change in formatResult.inputChanges) when {
+                remainingOffset - addedChars <= 0 -> break
+                change is InputChange.Insert -> addedChars += 1
+                change is InputChange.Take -> remainingOffset -= change.chars
             }
-            return offset - fixedChars
+            return offset - addedChars
         }
 
     }

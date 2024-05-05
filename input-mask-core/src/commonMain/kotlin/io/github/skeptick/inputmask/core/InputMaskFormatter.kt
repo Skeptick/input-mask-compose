@@ -1,91 +1,88 @@
+@file:Suppress("FunctionName")
+
 package io.github.skeptick.inputmask.core
 
-import io.github.skeptick.inputmask.core.FormatResult.Companion.Incomplete
+import io.github.skeptick.inputmask.core.internal.fastForEach
+import io.github.skeptick.inputmask.core.internal.fastLazy
+import io.github.skeptick.inputmask.core.internal.process
 
-public data class FormatResult(
-    val value: String,
+public data class FormatResult internal constructor(
+    val sourceValue: String,
+    val inputChanges: InputChanges,
     val isComplete: Boolean
 ) {
+
+    val formattedValue: String by fastLazy { formattedInput(inputChanges, sourceValue) }
+    val extractedValue: String by fastLazy { extractedInput(inputChanges, sourceValue) }
+    val clearedValue: String by fastLazy { clearedInput(inputChanges, sourceValue) }
+
     public companion object {
 
-        public operator fun invoke(mask: InputMask): FormatResult =
+        public fun Empty(sourceValue: String): FormatResult =
             FormatResult(
-                value = "",
-                isComplete = mask.isBlank()
+                sourceValue = sourceValue,
+                isComplete = true,
+                inputChanges = listOf(
+                    InputChange.Take(sourceValue.length)
+                )
             )
 
-        @Suppress("FunctionName")
-        internal fun Incomplete(value: CharSequence): FormatResult =
+        internal fun Incomplete(text: String, inputChanges: InputChanges) =
             FormatResult(
-                value = value.toString(),
+                sourceValue = text,
+                inputChanges = inputChanges,
                 isComplete = false
             )
+
     }
 }
 
-public fun InputMask.format(text: String): FormatResult {
-    return format(text = text, isExtraction = false)
+/**
+ * @param[replacePrefix] If false, then characters that are the mask prefix will be unconditionally added to the result.
+ *
+ * Example:
+ * ```mask = 123-[000]``` (prefix is `123-`)
+ * ```mask.format(text = 123456, replacePrefix = true)``` = 123-456
+ * ```mask.format(text = 123456, replacePrefix = false)``` = 123-123 (characters outside the mask were omitted)
+ */
+public fun InputMask.format(text: String, replacePrefix: Boolean = true): FormatResult {
+    return process(text, replacePrefix)
 }
 
-public fun InputMask.extract(text: String): FormatResult {
-    return format(text = text, isExtraction = true)
+private fun formattedInput(changes: InputChanges, text: String): String {
+    return processInput(changes, text) { change, stringBuilder ->
+        stringBuilder.append(change.fixedChar.char)
+    }
 }
 
-public fun InputMask.format(text: String, isExtraction: Boolean): FormatResult {
-    if (isBlank()) return FormatResult(text, isComplete = true)
-    val source = StringBuilder(text)
-    return FormatResult(
-        isComplete = true,
-        value = buildString {
-            for (slot in slots) when (slot) {
-                is InputSlot.FixedChar -> {
-                    if (!isExtraction || slot.extracted) append(slot.char)
-                }
-                InputSlot.RequiredDigit, InputSlot.RequiredLetter, InputSlot.RequiredLetterOrDigit -> {
-                    swapFirst(source = source, target = this, predicate = slot.predicate) ?: return Incomplete(this)
-                }
-                InputSlot.OptionalDigit, InputSlot.OptionalLetter, InputSlot.OptionalLetterOrDigit -> {
-                    swapFirst(source = source, target = this, predicate = slot.predicate)
-                }
-                InputSlot.Digits, InputSlot.Letters, InputSlot.LettersOrDigits -> {
-                    swapWhile(source = source, target = this, predicate = slot.predicate)
-                }
-            }
+private fun extractedInput(changes: InputChanges, text: String): String {
+    return processInput(changes, text) { change, stringBuilder ->
+        if (change.fixedChar.extracted) {
+            stringBuilder.append(change.fixedChar.char)
         }
-    )
+    }
 }
 
-public fun InputMask.clear(text: String): String {
-    if (isBlank()) return text
-    val source = StringBuilder(text)
+private fun clearedInput(changes: InputChanges, text: String): String {
+    return processInput(changes, text) { _, _ -> }
+}
+
+private inline fun processInput(
+    changes: InputChanges,
+    text: String,
+    onInsert: (InputChange.Insert, StringBuilder) -> Unit
+): String {
     return buildString {
-        for (slot in slots) when (slot) {
-            is InputSlot.FixedChar -> continue
-            InputSlot.RequiredDigit, InputSlot.RequiredLetter, InputSlot.RequiredLetterOrDigit -> {
-                swapFirst(source = source, target = this, predicate = slot.predicate) ?: return this.toString()
-            }
-            InputSlot.OptionalDigit, InputSlot.OptionalLetter, InputSlot.OptionalLetterOrDigit -> {
-                swapFirst(source = source, target = this, predicate = slot.predicate)
-            }
-            InputSlot.Digits, InputSlot.Letters, InputSlot.LettersOrDigits -> {
-                swapWhile(source = source, target = this, predicate = slot.predicate)
+        var sourceOffset = 0
+        changes.fastForEach { change ->
+            when (change) {
+                is InputChange.Take -> {
+                    append(text.substring(sourceOffset, sourceOffset + change.chars))
+                    sourceOffset += change.chars
+                }
+                is InputChange.Drop -> sourceOffset += change.chars
+                is InputChange.Insert -> onInsert(change, this)
             }
         }
     }
-}
-
-private inline fun swapFirst(source: StringBuilder, target: StringBuilder, predicate: (Char) -> Boolean): Char? {
-    return source.popFirstOrNull(predicate)?.also(target::append)
-}
-
-private inline fun swapWhile(source: StringBuilder, target: StringBuilder, predicate: (Char) -> Boolean) {
-    source.popWhile(predicate).let(target::append)
-}
-
-private inline fun StringBuilder.popFirstOrNull(predicate: (Char) -> Boolean): Char? {
-    return if (firstOrNull()?.let(predicate) == true) get(0).also { deleteAt(0) } else null
-}
-
-private inline fun StringBuilder.popWhile(predicate: (Char) -> Boolean): CharSequence {
-    return takeWhile(predicate).also { deleteRange(0, it.length) }
 }

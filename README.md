@@ -9,8 +9,8 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("io.github.skeptick.inputmask:core:0.0.1")
-                implementation("io.github.skeptick.inputmask:compose:0.0.1")
+                implementation("io.github.skeptick.inputmask:core:0.0.2")
+                implementation("io.github.skeptick.inputmask:compose:0.0.2")
             }
         }
     }
@@ -35,7 +35,8 @@ kotlin {
 
 Верхнеуровнево:
 - в `[]` описываем то, что ожидаем от пользователя
-- в `{}` любые символы, которые хотим получить в извлекаемом значении (подробнее ниже)
+- в `{}` любые символы, которые хотим получить в извлекаемом значении
+- все символы за пределами `[]` и `{}` будут вставлены в процессе форматирования, но не попадут в извлекаемое значение
 
 В `[]` поддерживаются следующие символы:
 - `0` - обязательная цифра
@@ -47,9 +48,7 @@ kotlin {
 - `…` - неограниченное количество цифр или букв
   - если перед `…` стоит `0` или `9`, то будут ожидаться цифровые символы
   - если перед `…` стоит `A` или `a`, то будут ожидаться буквенные символы
-  - если перед `…` стоит `_` или `-`, или не стоит ничего, то будут ожидаться буквы или цифры  
-
-Все символы находящиеся за пределами `[]` будут вставлены в поле во время ввода, символы находящиеся в `{}` также будут добавлены в результирующее значение.  
+  - если перед `…` стоит `_` или `-`, или не стоит ничего, то будут ожидаться буквы или цифры
 
 ### Создание маски
 
@@ -76,13 +75,17 @@ val inputMask = InputMasks.build {
 ### Использование
 
 ```kotlin
-inputMask.format("9001234567") // -> FormatResult("+7 (900) 123-4567", isComplete = true)
+val result = inputMask.format("9001234567")
+result.isComplete // -> true
+result.formattedValue // -> +7 (900) 123-4567
+result.extractedValue // -> 79001234567
 ```
 
-Также можно получить сырое представление, но с «извлекаемыми» символами (теми, что мы указывали в `{}`):
+Обратите внимание на параметр `replacePrefix`:
 
 ```kotlin
-inputMask.extract("9001234567") // -> "79001234567"
+inputMask.format("79001234567", replacePrefix = true) // -> +7 (900) 123-4567
+inputMask.format("79001234567", replacePrefix = false) // -> +7 (790) 012-3456
 ```
 
 ### Использование в Compose
@@ -98,7 +101,6 @@ var value by remember { mutableStateOf("") }
 TextField(
     value = value,
     onValueChange = { value = visualTransformation.clear(it) },
-    visualTransformation = visualTransformation,
-    keyboardOptions = remember(mask) { KeyboardOptions(keyboardType = visualTransformation.keyboardType) },
+    visualTransformation = visualTransformation
 )
 ```
