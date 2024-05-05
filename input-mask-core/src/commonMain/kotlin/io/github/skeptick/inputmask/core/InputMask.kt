@@ -7,6 +7,18 @@ public class InputMask internal constructor(
 ) {
     public fun isBlank(): Boolean = slots.isEmpty()
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        val otherInputMask = other as? InputMask ?: return false
+        if (slots.size != otherInputMask.slots.size) return false
+        for (index in slots.indices) if (slots[index] != otherInputMask.slots[index]) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return slots.hashCode()
+    }
+
     public companion object {
         public val Blank: InputMask = InputMask(emptyList())
     }

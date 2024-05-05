@@ -6,14 +6,39 @@ import io.github.skeptick.inputmask.core.internal.fastForEach
 import io.github.skeptick.inputmask.core.internal.fastLazy
 import io.github.skeptick.inputmask.core.internal.process
 
+/**
+ * @property[sourceValue] Original string for which formatting was performed
+ * @property[inputChanges] Changes that need to be sequentially applied to [sourceValue]
+ * @property[isComplete] `true` if result matches the mask (all required characters are filled)
+ */
 public data class FormatResult internal constructor(
     val sourceValue: String,
     val inputChanges: InputChanges,
     val isComplete: Boolean
 ) {
 
+    /**
+     * Formatted value
+     * Mask = +{7} ([000]) [000]-[0000]
+     * [sourceValue] = 123abc456def7890
+     * [formattedValue] = +7 (123) 456-7890
+     */
     val formattedValue: String by fastLazy { formattedInput(inputChanges, sourceValue) }
+
+    /**
+     * Extracted value
+     * Mask = +{7} ([000]) [000]-[0000]
+     * [sourceValue] = 123abc456def7890
+     * [extractedValue] = 71234567890
+     */
     val extractedValue: String by fastLazy { extractedInput(inputChanges, sourceValue) }
+
+    /**
+     * Cleared value. Used during input to clear user input. It has no purpose beyond input fields
+     * Mask = +{7} ([000]) [000]-[0000]
+     * [sourceValue] = 123abc456def7890
+     * [clearedValue] = 1234567890
+     */
     val clearedValue: String by fastLazy { clearedInput(inputChanges, sourceValue) }
 
     public companion object {
@@ -50,13 +75,13 @@ public fun InputMask.format(text: String, replacePrefix: Boolean = true): Format
 }
 
 private fun formattedInput(changes: InputChanges, text: String): String {
-    return processInput(changes, text) { change, stringBuilder ->
+    return processInput(changes, text, appendPreserve = true) { change, stringBuilder ->
         stringBuilder.append(change.fixedChar.char)
     }
 }
 
 private fun extractedInput(changes: InputChanges, text: String): String {
-    return processInput(changes, text) { change, stringBuilder ->
+    return processInput(changes, text, appendPreserve = false) { change, stringBuilder ->
         if (change.fixedChar.extracted) {
             stringBuilder.append(change.fixedChar.char)
         }
@@ -64,12 +89,13 @@ private fun extractedInput(changes: InputChanges, text: String): String {
 }
 
 private fun clearedInput(changes: InputChanges, text: String): String {
-    return processInput(changes, text) { _, _ -> }
+    return processInput(changes, text, appendPreserve = true) { _, _ -> }
 }
 
 private inline fun processInput(
     changes: InputChanges,
     text: String,
+    appendPreserve: Boolean,
     onInsert: (InputChange.Insert, StringBuilder) -> Unit
 ): String {
     return buildString {
@@ -78,6 +104,10 @@ private inline fun processInput(
             when (change) {
                 is InputChange.Take -> {
                     append(text.substring(sourceOffset, sourceOffset + change.chars))
+                    sourceOffset += change.chars
+                }
+                is InputChange.Preserve -> {
+                    if (appendPreserve) append(text.substring(sourceOffset, sourceOffset + change.chars))
                     sourceOffset += change.chars
                 }
                 is InputChange.Drop -> sourceOffset += change.chars

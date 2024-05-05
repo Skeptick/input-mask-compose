@@ -12,6 +12,7 @@ internal interface InputChangesBuilder {
     val textOffset: Int
     fun take(chars: Int)
     fun drop(chars: Int)
+    fun preserve(chars: Int)
     fun insert(char: InputSlot.FixedChar)
     fun replace(char: InputSlot.FixedChar)
     fun build(): InputChanges
@@ -23,27 +24,39 @@ internal class DefaultInputChangesBuilder(private val length: Int) : InputChange
     private val actions = ArrayList<InputChange>()
     private var dropCounter = 0
     private var takeCounter = 0
+    private var preserveCounter = 0
 
     override fun take(chars: Int) {
         appendDrop()
+        appendPreserve()
         takeCounter += chars
         textOffset += chars
     }
 
     override fun drop(chars: Int) {
         appendTake()
+        appendPreserve()
         dropCounter += chars
+        textOffset += chars
+    }
+
+    override fun preserve(chars: Int) {
+        appendTake()
+        appendDrop()
+        preserveCounter += chars
         textOffset += chars
     }
 
     override fun insert(char: InputSlot.FixedChar) {
         appendTake()
         appendDrop()
+        appendPreserve()
         actions += InputChange.Insert(char)
     }
 
     override fun replace(char: InputSlot.FixedChar) {
         appendTake()
+        appendPreserve()
         dropCounter += 1
         textOffset += 1
         appendDrop()
@@ -54,6 +67,7 @@ internal class DefaultInputChangesBuilder(private val length: Int) : InputChange
         if (textOffset != length) drop(length - textOffset)
         appendTake()
         appendDrop()
+        appendPreserve()
         return actions
     }
 
@@ -68,6 +82,13 @@ internal class DefaultInputChangesBuilder(private val length: Int) : InputChange
         if (dropCounter != 0) {
             actions += InputChange.Drop(dropCounter)
             dropCounter = 0
+        }
+    }
+
+    private fun appendPreserve() {
+        if (preserveCounter != 0) {
+            actions += InputChange.Preserve(preserveCounter)
+            preserveCounter = 0
         }
     }
 

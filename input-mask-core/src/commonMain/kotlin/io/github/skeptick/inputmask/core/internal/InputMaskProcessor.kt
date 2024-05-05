@@ -62,8 +62,9 @@ private inline fun InputChangesBuilder.takeFirst(text: String, predicate: (Char)
 }
 
 private inline fun InputChangesBuilder.replaceFirst(text: String, fixedChar: InputSlot.FixedChar): Boolean {
-    return moveOffsetToFirst(text, fixedChar.predicate).also {
-        if (it) replace(fixedChar)
+    return moveOffsetToFirst(text, fixedChar.predicate).also { found ->
+        if (!found) return@also
+        if (fixedChar.extracted) replace(fixedChar) else preserve(chars = 1)
     }
 }
 

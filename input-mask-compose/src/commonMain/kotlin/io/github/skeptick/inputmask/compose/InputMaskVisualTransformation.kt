@@ -55,6 +55,7 @@ public open class InputMaskVisualTransformation(mask: String) : VisualTransforma
                 change is InputChange.Insert -> addedChars += 1
                 remainingOffset == 0 -> break
                 change is InputChange.Take -> remainingOffset -= change.chars
+                change is InputChange.Preserve -> remainingOffset -= change.chars
             }
             return offset + addedChars
         }
@@ -66,6 +67,7 @@ public open class InputMaskVisualTransformation(mask: String) : VisualTransforma
                 remainingOffset - addedChars <= 0 -> break
                 change is InputChange.Insert -> addedChars += 1
                 change is InputChange.Take -> remainingOffset -= change.chars
+                change is InputChange.Preserve -> remainingOffset -= change.chars
             }
             return offset - addedChars
         }
