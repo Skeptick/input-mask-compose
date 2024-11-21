@@ -1,6 +1,4 @@
-@file:OptIn(ExperimentalWasmDsl::class)
-
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+@file:OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
 
 plugins {
     id("android-setup-plugin")
@@ -19,29 +17,48 @@ kotlin {
         }
     }
 
+    // Android
     androidTarget {
         publishAllLibraryVariants()
     }
+
+    // JVM
     jvm()
+
+    // JavaScript
     js {
         browser()
         nodejs()
     }
-    iosArm64()
+
+    // iOS
     iosX64()
+    iosArm64()
     iosSimulatorArm64()
+
+    // watchOS
+    watchosX64()
     watchosArm32()
     watchosArm64()
-    watchosX64()
     watchosSimulatorArm64()
-    tvosArm64()
+
+    // tvOS
     tvosX64()
+    tvosArm64()
     tvosSimulatorArm64()
+
+    // Linux
     linuxX64()
+    linuxArm64()
+
+    // Windows
     mingwX64()
+
+    // MacOS
     macosX64()
     macosArm64()
-    linuxArm64()
+
+    // WASM
     wasmJs()
     wasmWasi()
 

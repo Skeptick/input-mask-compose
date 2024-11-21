@@ -9,8 +9,8 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("io.github.skeptick.inputmask:core:0.0.2")
-                implementation("io.github.skeptick.inputmask:compose:0.0.2")
+                implementation("io.github.skeptick.inputmask:core:0.0.4")
+                implementation("io.github.skeptick.inputmask:compose:0.0.4")
             }
         }
     }
@@ -90,17 +90,64 @@ inputMask.format("79001234567", replacePrefix = false) // -> +7 (790) 012-3456
 
 ### Использование в Compose
 
-Артефакт `compose` поставляет базовые `MaskedTextField` и `MaskedOutlinedTextField`.  
-Вы также можете использовать свои, вместе с идущим в комплекте `InputMaskVisualTransformation`:
+Артефакт `compose` поставляет имлементации `VisualTransformation` для `TextField` принимающих `String` или `TextFieldValue`:
 
 ```kotlin
-val mask = "+{7} ([000]) [000]-[0000]"
-val visualTransformation = remember(mask) { InputMaskVisualTransformation(mask) }
-var value by remember { mutableStateOf("") }
+var text by remember { mutableStateOf("") }
+val mask = "[000]-[000]"
+val visualTransformation = remember { InputMaskVisualTransformation(mask) }
 
-TextField(
+BasicTextField(
+    value = text,
+    onValueChange = { text = visualTransformation.sanitize(it) },
+    visualTransformation = visualTransformation,
+)
+```
+
+Специальная вариация для форматирования телефона, обрабатывающая вставку в поле ввода номера как
+с кодом страны, так и без:
+
+```kotlin
+var text by remember { mutableStateOf("") }
+var mask = "+{7} ([000]) [000]-[00]-[00]"
+val visualTransformation = remember(mask) { PhoneInputMaskVisualTransformation(mask) }
+
+BasicTextField(
     value = value,
-    onValueChange = { value = visualTransformation.clear(it) },
-    visualTransformation = visualTransformation
+    onValueChange = { text = visualTransformation.sanitize(it) },
+    visualTransformation = visualTransformation,
+)
+```
+
+Обратите внимание, что если маска может измениться в процессе ввода (например, пользователю предоставляется
+возможность выбрать страну во время авторизации), то нужно также обновить значение:
+
+```kotlin
+BasicTextField(
+    value = remember(text, mask) { visualTransformation.sanitize(value) },
+    // ...
+)
+```
+
+Для полей ввода, построенных вокруг `TextFieldState` есть имлементации `InputTransformation` и `OutputTransformation`:
+
+```kotlin
+val textFieldState = remember { TextFieldState() }
+val mask = "[000]-[000]"
+    
+BasicTextField(
+    state = textFieldState,
+    inputTransformation = remember(mask) { InputMaskInputTransformation(mask) },
+    outputTransformation = remember(mask) { InputMaskOutputTransformation(mask) },
+)
+```
+
+И специальная вариация `InputTransformation` для телефонных номеров:
+
+```kotlin
+BasicTextField(
+    // ...
+    inputTransformation = remember(mask) { PhoneInputTransformation(mask) },
+    // ...
 )
 ```

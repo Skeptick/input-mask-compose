@@ -1,5 +1,6 @@
 package io.github.skeptick.inputmask.compose
 
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
@@ -10,18 +11,40 @@ import io.github.skeptick.inputmask.core.InputMask
 import io.github.skeptick.inputmask.core.InputMasks
 import io.github.skeptick.inputmask.core.format
 
+/**
+ * A basic implementation of VisualTransformation based on InputMask.
+ * It introduces an additional `sanitize` function,
+ * which is necessary due to the specific behavior of VisualTransformation.
+ * This function sanitizes the value entered by the user
+ * (removing unnecessary characters) before formatting and saving it into the state.
+ * You need to call this function manually before saving the value (typically in `onValueChange`).
+ *
+ * Example usage:
+ * ```
+ * var text by remember { mutableStateOf("") }
+ * val mask = "[000]-[000]"
+ * val visualTransformation = remember { InputMaskVisualTransformation(mask) }
+ *
+ * BasicTextField(
+ *     value = text,
+ *     onValueChange = { text = visualTransformation.sanitize(it) },
+ *     visualTransformation = visualTransformation
+ * )
+ * ```
+ */
+@Stable
 public open class InputMaskVisualTransformation(mask: String) : VisualTransformation {
 
     public val inputMask: InputMask = InputMasks.getOrCreate(mask)
 
-    protected var lastFormatResult: FormatResult = inputMask.format("")
+    private var lastFormatResult: FormatResult = inputMask.format("")
 
-    protected var lastTransformedText: TransformedText = TransformedText(
+    private var lastTransformedText: TransformedText = TransformedText(
         text = AnnotatedString(lastFormatResult.formattedValue),
         offsetMapping = InputMaskOffsetMapping(lastFormatResult)
     )
 
-    public open fun clear(text: String): String {
+    public open fun sanitize(text: String): String {
         if (lastFormatResult.sourceValue == text) {
             return lastFormatResult.clearedValue
         }

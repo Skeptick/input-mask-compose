@@ -1,15 +1,16 @@
 [versions]
-plugin-android = "8.2.2"
-plugin-publish-maven = "0.27.0"
-plugin-multiplatform-compose = "1.6.10-beta02"
+plugin-android = "8.5.2"
+plugin-publish-maven = "0.30.0"
+plugin-compose-jb = "1.7.1"
 
-kotlin = "1.9.23"
+kotlin = "2.0.21"
 junit = "4.13.2"
 
 [libraries]
 plugin-android = { module = "com.android.tools.build:gradle", version.ref = "plugin-android" }
 plugin-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 plugin-publish-maven = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "plugin-publish-maven" }
-plugin-multiplatform-compose = { module = "org.jetbrains.compose:compose-gradle-plugin", version.ref = "plugin-multiplatform-compose" }
+plugin-compose-jb = { module = "org.jetbrains.compose:compose-gradle-plugin", version.ref = "plugin-compose-jb" }
+plugin-compose-compiler = { module = "org.jetbrains.kotlin:compose-compiler-gradle-plugin", version.ref = "kotlin" }
 
 junit = { module = "junit:junit", version.ref = "junit" }
