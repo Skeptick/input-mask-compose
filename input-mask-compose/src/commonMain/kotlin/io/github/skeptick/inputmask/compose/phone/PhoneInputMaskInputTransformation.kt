@@ -14,15 +14,15 @@ import io.github.skeptick.inputmask.core.InputMask
 import io.github.skeptick.inputmask.core.InputMasks
 
 @Composable
-public fun PhoneInputTransformation(mask: String): InputTransformation {
+public fun PhoneInputMaskInputTransformation(mask: String): InputTransformation {
     return remember(mask) {
         val inputMask = InputMasks.getOrCreate(mask)
-        PhoneInputTransformation(inputMask).then(InputMaskInputTransformation(inputMask))
+        PhoneInputMaskInputTransformation(inputMask).then(InputMaskInputTransformation(inputMask))
     }
 }
 
 @Stable
-private class PhoneInputTransformation(inputMask: InputMask) : InputTransformation {
+private class PhoneInputMaskInputTransformation(inputMask: InputMask) : InputTransformation {
 
     private val maskExtractedPrefix by lazy(LazyThreadSafetyMode.NONE) { inputMask.extractedPrefix }
     private val maskDigitsCount by lazy(LazyThreadSafetyMode.NONE) { inputMask.inputDigits }

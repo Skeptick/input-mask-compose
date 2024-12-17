@@ -9,8 +9,8 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("io.github.skeptick.inputmask:core:0.0.4")
-                implementation("io.github.skeptick.inputmask:compose:0.0.4")
+                implementation("io.github.skeptick.inputmask:inputmask-core:0.0.5")
+                implementation("io.github.skeptick.inputmask:inputmask-compose:0.0.5")
             }
         }
     }
@@ -19,7 +19,7 @@ kotlin {
 
 ## Поддерживаемые платформы
 
-`core` поддерживает все таргеты Kotlin-а, `compose` все таргеты Compose Multiplatform.
+`core` поддерживает все таргеты Kotlin, `compose` все таргеты Compose Multiplatform.
 
 ## Идея
 
@@ -109,7 +109,7 @@ BasicTextField(
 
 ```kotlin
 var text by remember { mutableStateOf("") }
-var mask = "+{7} ([000]) [000]-[00]-[00]"
+var mask = "+{7} ([000]) [000]-[0000]"
 val visualTransformation = remember(mask) { PhoneInputMaskVisualTransformation(mask) }
 
 BasicTextField(
@@ -129,7 +129,7 @@ BasicTextField(
 )
 ```
 
-Для полей ввода, построенных вокруг `TextFieldState` есть имлементации `InputTransformation` и `OutputTransformation`:
+Для полей ввода, построенных вокруг `TextFieldState` есть имплементации `InputTransformation` и `OutputTransformation`:
 
 ```kotlin
 val textFieldState = remember { TextFieldState() }
@@ -147,7 +147,7 @@ BasicTextField(
 ```kotlin
 BasicTextField(
     // ...
-    inputTransformation = remember(mask) { PhoneInputTransformation(mask) },
+    inputTransformation = remember(mask) { PhoneInputMaskInputTransformation(mask) },
     // ...
 )
 ```

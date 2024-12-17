@@ -25,12 +25,6 @@ kotlin {
     // JVM
     jvm()
 
-    // JavaScript
-    js {
-        browser()
-        nodejs()
-    }
-
     // iOS
     iosX64()
     iosArm64()
@@ -58,9 +52,23 @@ kotlin {
     macosX64()
     macosArm64()
 
-    // WASM
-    wasmJs()
-    wasmWasi()
+    // JavaScript
+    js {
+        browser()
+        nodejs()
+    }
+
+    // WASM JS
+    wasmJs {
+        browser()
+        nodejs()
+        d8()
+    }
+
+    // WASM WASI
+    wasmWasi {
+        nodejs()
+    }
 
     jvmToolchain(17)
 }

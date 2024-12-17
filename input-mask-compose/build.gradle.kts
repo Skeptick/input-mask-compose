@@ -27,11 +27,6 @@ kotlin {
     // JVM
     jvm()
 
-    // JS
-    js {
-        browser()
-    }
-
     // MacOS
     macosX64()
     macosArm64()
@@ -41,8 +36,15 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
-    // WASM
-    wasmJs()
+    // JavaScript
+    js {
+        browser()
+    }
+
+    // WASM JS
+    wasmJs {
+        browser()
+    }
 
     sourceSets {
         commonMain {

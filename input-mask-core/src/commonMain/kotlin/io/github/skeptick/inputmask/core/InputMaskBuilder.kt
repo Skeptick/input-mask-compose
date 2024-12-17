@@ -90,7 +90,7 @@ internal open class DefaultInputMaskBuilder : InputMaskBuilder {
     }
 
     private fun replaceLast(predicate: (InputSlot) -> Boolean, newSlot: InputSlot) {
-        while (slots.lastOrNull()?.let(predicate) == true) slots.removeLast()
+        while (slots.lastOrNull()?.let(predicate) == true) slots.removeAt(slots.lastIndex)
         this += newSlot
     }
 
