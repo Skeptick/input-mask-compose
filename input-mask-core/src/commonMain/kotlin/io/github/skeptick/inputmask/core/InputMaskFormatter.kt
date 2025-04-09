@@ -11,6 +11,7 @@ import io.github.skeptick.inputmask.core.internal.process
  * @property[inputChanges] Changes that need to be sequentially applied to [sourceValue]
  * @property[isComplete] `true` if result matches the mask (all required characters are filled)
  */
+@ConsistentCopyVisibility
 public data class FormatResult internal constructor(
     val sourceValue: String,
     val inputChanges: InputChanges,

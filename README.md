@@ -9,8 +9,8 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("io.github.skeptick.inputmask:inputmask-core:0.0.5")
-                implementation("io.github.skeptick.inputmask:inputmask-compose:0.0.5")
+                implementation("io.github.skeptick.inputmask:inputmask-core:0.0.6")
+                implementation("io.github.skeptick.inputmask:inputmask-compose:0.0.6")
             }
         }
     }
@@ -94,8 +94,7 @@ inputMask.format("79001234567", replacePrefix = false) // -> +7 (790) 012-3456
 
 ```kotlin
 var text by remember { mutableStateOf("") }
-val mask = "[000]-[000]"
-val visualTransformation = remember { InputMaskVisualTransformation(mask) }
+val visualTransformation = rememberInputMaskVisualTransformation("[000]-[000]")
 
 BasicTextField(
     value = text,
@@ -109,8 +108,8 @@ BasicTextField(
 
 ```kotlin
 var text by remember { mutableStateOf("") }
-var mask = "+{7} ([000]) [000]-[0000]"
-val visualTransformation = remember(mask) { PhoneInputMaskVisualTransformation(mask) }
+val mask = "+{7} ([000]) [000]-[0000]"
+val visualTransformation = rememberPhoneInputMaskVisualTransformation(mask)
 
 BasicTextField(
     value = value,
@@ -134,11 +133,11 @@ BasicTextField(
 ```kotlin
 val textFieldState = remember { TextFieldState() }
 val mask = "[000]-[000]"
-    
+
 BasicTextField(
     state = textFieldState,
-    inputTransformation = remember(mask) { InputMaskInputTransformation(mask) },
-    outputTransformation = remember(mask) { InputMaskOutputTransformation(mask) },
+    inputTransformation = rememberInputMaskInputTransformation(mask),
+    outputTransformation = rememberInputMaskOutputTransformation(mask),
 )
 ```
 
@@ -147,7 +146,7 @@ BasicTextField(
 ```kotlin
 BasicTextField(
     // ...
-    inputTransformation = remember(mask) { PhoneInputMaskInputTransformation(mask) },
+    inputTransformation = rememberPhoneInputMaskInputTransformation(mask),
     // ...
 )
 ```

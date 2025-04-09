@@ -13,6 +13,35 @@ import io.github.skeptick.inputmask.compose.internal.inputDigits
 import io.github.skeptick.inputmask.core.InputMask
 import io.github.skeptick.inputmask.core.InputMasks
 
+/**
+ * A specialized implementation of InputTransformation for formatting phone numbers.
+ * Unlike the standard [InputMaskInputTransformation], this implementation can correctly handle
+ * the insertion of phone numbers both with and without a country code.
+ *
+ * Example usage:
+ * ```
+ * val textFieldState = remember { TextFieldState() }
+ * val mask = "+{7} ([000]) [000]-[00]-[00]"
+ *
+ * BasicTextField(
+ *     state = textFieldState,
+ *     inputTransformation = rememberPhoneInputMaskInputTransformation(mask),
+ *     outputTransformation = rememberInputMaskOutputTransformation(mask),
+ * )
+ * ```
+ */
+@Composable
+public fun rememberPhoneInputMaskInputTransformation(mask: String): InputTransformation {
+    return remember(mask) {
+        val inputMask = InputMasks.getOrCreate(mask)
+        PhoneInputMaskInputTransformation(inputMask).then(InputMaskInputTransformation(inputMask))
+    }
+}
+
+@Deprecated(
+    message = "Use `rememberPhoneInputMaskInputTransformation`",
+    replaceWith = ReplaceWith("rememberPhoneInputMaskInputTransformation(mask)")
+)
 @Composable
 public fun PhoneInputMaskInputTransformation(mask: String): InputTransformation {
     return remember(mask) {

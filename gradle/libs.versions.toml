@@ -1,9 +1,9 @@
 [versions]
-plugin-android = "8.7.2"
-plugin-publish-maven = "0.30.0"
-plugin-compose-jb = "1.7.1"
+plugin-android = "8.7.3"
+plugin-publish-maven = "0.31.0"
+plugin-compose-jb = "1.8.0-beta01"
 
-kotlin = "2.1.0"
+kotlin = "2.1.20"
 junit = "4.13.2"
 
 [libraries]

@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package io.github.skeptick.inputmask.core.internal
 
 import io.github.skeptick.inputmask.core.FormatResult

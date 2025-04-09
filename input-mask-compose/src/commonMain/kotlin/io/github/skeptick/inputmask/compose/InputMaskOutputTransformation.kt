@@ -4,12 +4,21 @@ import androidx.compose.foundation.text.input.OutputTransformation
 import androidx.compose.foundation.text.input.TextFieldBuffer
 import androidx.compose.foundation.text.input.delete
 import androidx.compose.foundation.text.input.insert
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.util.fastForEach
 import io.github.skeptick.inputmask.core.InputChange
 import io.github.skeptick.inputmask.core.InputMask
 import io.github.skeptick.inputmask.core.InputMasks
 import io.github.skeptick.inputmask.core.format
+
+@Composable
+public fun rememberInputMaskOutputTransformation(mask: String): InputMaskOutputTransformation {
+    return remember(mask) {
+        InputMaskOutputTransformation(mask)
+    }
+}
 
 @Stable
 public class InputMaskOutputTransformation(private val inputMask: InputMask) : OutputTransformation {

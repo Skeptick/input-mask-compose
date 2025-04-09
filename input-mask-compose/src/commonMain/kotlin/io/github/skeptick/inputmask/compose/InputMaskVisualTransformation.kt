@@ -1,6 +1,8 @@
 package io.github.skeptick.inputmask.compose
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
@@ -10,6 +12,13 @@ import io.github.skeptick.inputmask.core.InputChange
 import io.github.skeptick.inputmask.core.InputMask
 import io.github.skeptick.inputmask.core.InputMasks
 import io.github.skeptick.inputmask.core.format
+
+@Composable
+public fun rememberInputMaskVisualTransformation(mask: String): InputMaskVisualTransformation {
+    return remember(mask) {
+        InputMaskVisualTransformation(mask)
+    }
+}
 
 /**
  * A basic implementation of VisualTransformation based on InputMask.
